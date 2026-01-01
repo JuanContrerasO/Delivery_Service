@@ -39,3 +39,12 @@
 
 # debug information files
 *.dwo
+
+# Node / JS / Svelte
+node_modules/
+dist/
+*.log
+
+# OS-specific
+.DS_Store   # macOS
+Thumbs.db   # Windows
