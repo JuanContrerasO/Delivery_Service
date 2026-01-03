@@ -37,15 +37,34 @@ int main()
 	
 	for (int i = 0; i < num_legs; ++i)
 	{
-		double distance, speed;
-		std::cout << "Enter distance for leg " << i + 1 << " (miles): ";
-		std::cin >> distance;
-		std::cout << "Enter average speed for leg " << i + 1 << " (mph): ";
-		std::cin >> speed;
-		std::cout << "\n";
+		double distance = 0, speed = 0;
 		
-		TripLeg leg(distance, speed);
-		trip.addLeg(leg);
+		do
+		{
+			std::cout << "Enter distance for leg " << i + 1 << " (miles): ";
+			std::cin >> distance;
+			if (std::cin.fail() || distance <= 0)
+			{
+				std::cin.clear();
+				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+				std::cout << "Distance must be a positive number. Please try again.\n";
+			}
+		} while (distance <= 0);
+		
+		do
+		{
+			std::cout << "Enter average speed for leg " << i + 1 << " (mph): ";
+			std::cin >> speed;
+			if (std::cin.fail() || speed <= 0)
+			{
+				std::cin.clear();
+				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+				std::cout << "Speed must be a positive number. Please try again.\n";
+			}
+		} while (speed <= 0);
+		
+		trip.addLeg(distance, speed);
+		std::cout << "\n";
 	}
 	
 	double total_time = trip.totalTime();

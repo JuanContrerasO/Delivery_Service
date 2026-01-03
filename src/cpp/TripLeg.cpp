@@ -11,4 +11,4 @@ void TripLeg::set(double d, double s)
 double TripLeg::getDistance() const { return distance; }
 double TripLeg::getSpeed() const { return speed; }
 
-double TripLeg::ComputeTime() const { return ::compute_time(distance, speed); }
+double TripLeg::computeTime() const { return ::compute_time(distance, speed); }

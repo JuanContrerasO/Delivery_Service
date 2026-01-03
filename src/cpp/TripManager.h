@@ -6,15 +6,15 @@
 
 class TripManager
 {
-
 public:
-	void addLeg(const TripLeg& leg);
-	double totalTime() const;
-	double totalDistance() const;
-	double averageSpeed() const;
-	
+    void addLeg(double distance, double speed);
+
+    double totalTime() const;
+    double averageSpeed() const;
+    int numberOfLegs() const;
+
 private:
-	std::vector<TripLeg> legs;
+    std::vector<TripLeg> legs;
 };
 
 #endif

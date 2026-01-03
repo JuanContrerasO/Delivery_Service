@@ -11,7 +11,7 @@ public:
 	void set(double d, double s);
 	double getDistance() const;
 	double getSpeed() const;
-	double ComputeTime() const; //Calls ASM function
+	double computeTime() const; //Calls ASM function
 
 private:
 	double distance;
