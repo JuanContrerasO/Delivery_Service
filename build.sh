@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "=== Phase 1 Build Start ==="
+echo "=== Phase 1 Native Build ==="
 
 #-----------------------------
 # Directory variables
@@ -10,52 +10,53 @@ ASM_DIR="src/asm"
 CPP_DIR="src/cpp"
 BUILD_DIR="build"
 
-ASM_FILE="$ASM_DIR/math.asm"
-
-# Object files
-ASM_OBJ="$BUILD_DIR/math.o"
-CPP_OBJS=(
-	"$BUILD_DIR/TripLeg.o"
-	"$BUILD_DIR/TripManager.o"
-	"$BUILD_DIR/main.o"
-)
-
-EXECUTABLE="$BUILD_DIR/trip.out"
-
-#-----------------------------
-# Create build directory if missing
-#-----------------------------
 mkdir -p "$BUILD_DIR"
 
-#-----------------------------
-# Assemble ASM
-#-----------------------------
-echo "Assembling $ASM_FILE"
-nasm -f elf64 "$ASM_FILE" -o "$ASM_OBJ"
+#=============================
+# NATIVE BUILD
+#=============================
 
-#-----------------------------
-# Compile C++ files
-#-----------------------------
-echo "Compiling C++ files..."
+ASM_NATIVE_OBJ="$BUILD_DIR/math_native.o"
+EXECUTABLE="$BUILD_DIR/trip.out"
+
+# Assemble ASM (native)
+nasm -f elf64 "$ASM_DIR/math.asm" -o "$ASM_NATIVE_OBJ"
+
+# Compile C++
 g++ -c -m64 -Wall -std=c++17 "$CPP_DIR/TripLeg.cpp" -o "$BUILD_DIR/TripLeg.o"
 g++ -c -m64 -Wall -std=c++17 "$CPP_DIR/TripManager.cpp" -o "$BUILD_DIR/TripManager.o"
 g++ -c -m64 -Wall -std=c++17 "$CPP_DIR/main.cpp" -o "$BUILD_DIR/main.o"
 
-#-----------------------------
-# Link C++ objects with ASM
-#-----------------------------
-echo "Linking all object files..."
-g++ -m64 -no-pie -o "$EXECUTABLE" "$ASM_OBJ" "${CPP_OBJS[@]}"
+# Link native executable
+g++ -m64 -no-pie \
+    "$ASM_NATIVE_OBJ" \
+    "$BUILD_DIR/TripLeg.o" \
+    "$BUILD_DIR/TripManager.o" \
+    "$BUILD_DIR/main.o" \
+    -o "$EXECUTABLE"
 
-#-----------------------------
-# Make executable runnable
-#-----------------------------
 chmod u+x "$EXECUTABLE"
 
-#-----------------------------
-# Run the program
-#-----------------------------
 echo "Running native executable:"
 "$EXECUTABLE"
 
-echo "=== Build Finished ==="
+#=============================
+# WASM BUILD
+#=============================
+
+echo "=== Phase 3 WASM Build ==="
+
+WASM_OUT="build/trip.js"
+
+em++ \
+    src/cpp/wasm_exports.cpp \
+    -s EXPORTED_FUNCTIONS="['_compute_time','_add']" \
+    -s EXPORTED_RUNTIME_METHODS="['cwrap']" \
+    -s NO_EXIT_RUNTIME=1 \
+    -o "$WASM_OUT"
+
+echo "Generated:"
+echo " - build/trip.js"
+echo " - build/trip.wasm"
+
+echo "=== Build Complete ==="
