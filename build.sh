@@ -6,49 +6,56 @@ echo "=== Phase 1 Build Start ==="
 #-----------------------------
 # Directory variables
 #-----------------------------
-
 ASM_DIR="src/asm"
 CPP_DIR="src/cpp"
 BUILD_DIR="build"
 
 ASM_FILE="$ASM_DIR/math.asm"
-CPP_FILE="$CPP_DIR/trip.cpp"
 
+# Object files
 ASM_OBJ="$BUILD_DIR/math.o"
-JS_OUT="$BUILD_DIR/trip.js"
+CPP_OBJS=(
+	"$BUILD_DIR/TripLeg.o"
+	"$BUILD_DIR/TripManager.o"
+	"$BUILD_DIR/main.o"
+)
+
+EXECUTABLE="$BUILD_DIR/trip.out"
 
 #-----------------------------
 # Create build directory if missing
 #-----------------------------
-
 mkdir -p "$BUILD_DIR"
 
 #-----------------------------
-# Assemble ASM (math only)
+# Assemble ASM
 #-----------------------------
-
 echo "Assembling $ASM_FILE"
-nasm -f wasm64 "$ASM_FILE" -o "ASM_OBJ"
+nasm -f elf64 "$ASM_FILE" -o "$ASM_OBJ"
 
 #-----------------------------
-# Compile + link C++ + ASM -> WASM
+# Compile C++ files
 #-----------------------------
+echo "Compiling C++ files..."
+g++ -c -m64 -Wall -std=c++17 "$CPP_DIR/TripLeg.cpp" -o "$BUILD_DIR/TripLeg.o"
+g++ -c -m64 -Wall -std=c++17 "$CPP_DIR/TripManager.cpp" -o "$BUILD_DIR/TripManager.o"
+g++ -c -m64 -Wall -std=c++17 "$CPP_DIR/main.cpp" -o "$BUILD_DIR/main.o"
 
-echo "Compiling and linking C++ with ASM"
-
-em++ "$CPP_FILE" "$ASM_OBJ" \
-	-s STANDALONE_WASM \
-	-s EXPORTED_FUNCTIONS="['_computeTrip','_compute_time', '_add']" \
-	-s EXPORTED_RUNTIME_METHODS="['cwrap']" \
-	-o "$JS_OUT"
-	
 #-----------------------------
-# Done
+# Link C++ objects with ASM
 #-----------------------------
+echo "Linking all object files..."
+g++ -m64 -no-pie -o "$EXECUTABLE" "$ASM_OBJ" "${CPP_OBJS[@]}"
 
-echo "Build complete!"
-echo "Generated:"
-echo " - $BUILD_DIR/trip.js"
-echo " - $BUILD_DIR/trip.wasm"
+#-----------------------------
+# Make executable runnable
+#-----------------------------
+chmod u+x "$EXECUTABLE"
+
+#-----------------------------
+# Run the program
+#-----------------------------
+echo "Running native executable:"
+"$EXECUTABLE"
 
 echo "=== Build Finished ==="
